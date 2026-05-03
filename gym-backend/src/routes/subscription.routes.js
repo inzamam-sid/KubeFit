@@ -4,6 +4,9 @@ import {
   holdSubscription,
   resumeSubscription,
   getHoldSubscriptions,
+  getAllSubscriptions,
+  getExpiringToday,
+  getOverdueSubscriptions,
 } from "../controllers/subscription.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 
@@ -15,5 +18,8 @@ router.post("/", verifyToken, addSubscription);
 router.post("/:id/hold", verifyToken, holdSubscription);
 router.post("/:id/resume", verifyToken, resumeSubscription);
 router.get("/hold", verifyToken, getHoldSubscriptions);
+router.get("/", verifyToken, getAllSubscriptions);
+router.get("/expiring-today", verifyToken, getExpiringToday);
+router.get("/overdue", verifyToken, getOverdueSubscriptions);
 
 export default router;
