@@ -28,33 +28,41 @@ const Dashboard = () => {
 
   return (
   <Layout>
-    <h2>Dashboard</h2>
+    <h2 className="text-2xl font-semibold mb-6">Dashboard</h2>
 
-    <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-      <Card title="Total Members" value={stats.totalMembers} />
-      <Card title="Active Members" value={stats.activeMembers} />
-      <Card title="Hold Members" value={stats.holdMembers} />
-      <Card title="Expiring Today" value={stats.expiringToday} />
-      <Card title="Overdue Members" value={stats.overdueMembers} />
-      <Card title="Revenue" value={`₹${stats.monthlyRevenue}`} />
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <Card title="Total Members" value={stats.totalMembers} color="blue" />
+      <Card title="Active Members" value={stats.activeMembers} color="green" />
+      <Card title="Hold Members" value={stats.holdMembers} color="yellow" />
+      <Card title="Expiring Today" value={stats.expiringToday} color="orange" />
+      <Card title="Overdue Members" value={stats.overdueMembers} color="red" />
+      <Card title="Revenue" value={`₹${stats.monthlyRevenue}`} color="purple" />
     </div>
   </Layout>
 );
 };
 
-const Card = ({ title, value }) => {
+const Card = ({ title, value, color }) => {
+  const colorMap = {
+    blue: "bg-blue-100 text-blue-600",
+    green: "bg-green-100 text-green-600",
+    yellow: "bg-yellow-100 text-yellow-600",
+    orange: "bg-orange-100 text-orange-600",
+    red: "bg-red-100 text-red-600",
+    purple: "bg-purple-100 text-purple-600",
+  };
+
   return (
-    <div
-      style={{
-        background: "#fff",
-        padding: "20px",
-        borderRadius: "12px",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-        minWidth: "220px",
-      }}
-    >
-      <p style={{ color: "#888" }}>{title}</p>
-      <h2>{value}</h2>
+    <div className="bg-white p-5 rounded-xl shadow hover:shadow-lg transition">
+      
+      <div className={`inline-block px-3 py-1 rounded-full text-sm mb-3 ${colorMap[color]}`}>
+        {title}
+      </div>
+
+      {/* <h2 className="text-3xl font-bold">{value}</h2> */}
+      <h2 className="text-3xl font-bold flex items-center gap-2">
+        📊 {value}
+      </h2>
     </div>
   );
 };

@@ -9,6 +9,7 @@ const Members = () => {
     memberId: "",
     mobile: "",
   });
+  const [editId, setEditId] = useState(null);
 
   // 📥 Fetch Members
   const fetchMembers = async () => {
@@ -46,6 +47,30 @@ const Members = () => {
     }
   };
 
+  const handleEdit = (member) => {
+  setForm({
+    name: member.name,
+    memberId: member.memberId,
+    mobile: member.mobile,
+  });
+
+  setEditId(member._id);
+};
+
+const updateMember = async () => {
+  try {
+    await API.put(`/members/${editId}`, form);
+    alert("Member updated");
+
+    setEditId(null);
+    setForm({ name: "", memberId: "", mobile: "" });
+
+    fetchMembers();
+  } catch (err) {
+    alert("Update failed");
+  }
+};
+
   return (
     <Layout>
       <h2>Members</h2>
@@ -70,7 +95,10 @@ const Members = () => {
           onChange={(e) => setForm({ ...form, mobile: e.target.value })}
         />
 
-        <button onClick={addMember}>Add</button>
+        {/* <button onClick={addMember}>Add</button> */}
+        <button onClick={editId ? updateMember : addMember}>
+          {editId ? "Update Member" : "Add Member"}
+        </button>
       </div>
 
       {/* 📋 Members List */}
@@ -91,8 +119,10 @@ const Members = () => {
               <td>{m.memberId}</td>
               <td>{m.mobile}</td>
               <td>
+                <button onClick={() => handleEdit(m)}>Edit</button>
                 <button onClick={() => deleteMember(m._id)}>Delete</button>
               </td>
+              
             </tr>
           ))}
         </tbody>
