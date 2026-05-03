@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import "./cron/subscription.cron.js";
 import memberRoutes from "./routes/member.routes.js";
 import packageRoutes from "./routes/package.routes.js";
 import subscriptionRoutes from "./routes/subscription.routes.js";
