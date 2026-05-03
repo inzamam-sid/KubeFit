@@ -2,48 +2,96 @@ import Subscription from "../models/subscription.model.js";
 import Member from "../models/member.model.js";
 import Package from "../models/package.model.js";
 
+// export const addSubscription = async (req, res) => {
+//   try {
+//     const { memberId, packageId, finalPrice } = req.body;
+
+//     // 1. Validate member
+//     const member = await Member.findById(memberId);
+//     if (!member) {
+//       return res.status(404).json({ message: "Member not found" });
+//     }
+
+//     // 2. Validate package
+//     const pkg = await Package.findById(packageId);
+//     if (!pkg || !pkg.isActive) {
+//       return res.status(404).json({ message: "Package not found or inactive" });
+//     }
+
+//     const today = new Date();
+
+//     // 3. Check existing active subscription
+//     const existing = await Subscription.findOne({
+//       memberId,
+//       status: "active",
+//       endDate: { $gte: today },
+//     });
+
+//     let startDate;
+
+//     if (existing) {
+//       // 🔥 Extend from current subscription
+//       startDate = new Date(existing.endDate);
+//     } else {
+//       // Fresh start
+//       startDate = new Date();
+//     }
+
+//     // 4. Calculate endDate
+//     const endDate = new Date(startDate);
+//     endDate.setDate(endDate.getDate() + pkg.duration);
+
+//     // 5. Pricing
+//     const actualPrice = pkg.price;
+//     const priceToStore = finalPrice || actualPrice;
+
+//     const subscription = await Subscription.create({
+//       memberId,
+//       packageId,
+//       startDate,
+//       endDate,
+//       actualPrice,
+//       finalPrice: priceToStore,
+//     });
+
+//     res.status(201).json({
+//       message: "Subscription created successfully",
+//       subscription,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
 export const addSubscription = async (req, res) => {
   try {
     const { memberId, packageId, finalPrice } = req.body;
 
-    // 1. Validate member
+    // Validate
+    if (!memberId || !packageId) {
+      return res.status(400).json({ message: "Missing data" });
+    }
+
     const member = await Member.findById(memberId);
     if (!member) {
       return res.status(404).json({ message: "Member not found" });
     }
 
-    // 2. Validate package
     const pkg = await Package.findById(packageId);
     if (!pkg || !pkg.isActive) {
-      return res.status(404).json({ message: "Package not found or inactive" });
+      return res.status(404).json({ message: "Invalid package" });
     }
 
-    const today = new Date();
+    const startDate = new Date();
 
-    // 3. Check existing active subscription
-    const existing = await Subscription.findOne({
-      memberId,
-      status: "active",
-      endDate: { $gte: today },
-    });
-
-    let startDate;
-
-    if (existing) {
-      // 🔥 Extend from current subscription
-      startDate = new Date(existing.endDate);
-    } else {
-      // Fresh start
-      startDate = new Date();
-    }
-
-    // 4. Calculate endDate
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + pkg.duration);
+    endDate.setDate(endDate.getDate() + (pkg.duration || 0));
 
-    // 5. Pricing
     const actualPrice = pkg.price;
-    const priceToStore = finalPrice || actualPrice;
+    const priceToStore =
+      finalPrice && !isNaN(finalPrice)
+        ? Number(finalPrice)
+        : actualPrice;
 
     const subscription = await Subscription.create({
       memberId,
@@ -55,10 +103,11 @@ export const addSubscription = async (req, res) => {
     });
 
     res.status(201).json({
-      message: "Subscription created successfully",
+      message: "Subscription created",
       subscription,
     });
   } catch (error) {
+    console.error("Subscription Error:", error); // 🔥 ADD THIS
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -146,6 +195,69 @@ export const getHoldSubscriptions = async (req, res) => {
       subscriptions,
     });
   } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+export const getAllSubscriptions = async (req, res) => {
+  try {
+    const subscriptions = await Subscription.find()
+      .populate("memberId", "name memberId")
+      .populate("packageId", "name");
+
+    res.status(200).json({
+      count: subscriptions.length,
+      subscriptions,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getExpiringToday = async (req, res) => {
+  try {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    const subscriptions = await Subscription.find({
+      endDate: { $gte: start, $lte: end },
+      status: "active",
+    })
+      .populate("memberId", "name memberId mobile")
+      .populate("packageId", "name");
+
+    res.status(200).json({
+      count: subscriptions.length,
+      subscriptions,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getOverdueSubscriptions = async (req, res) => {
+  try {
+    const today = new Date();
+
+    const subscriptions = await Subscription.find({
+      endDate: { $lt: today },
+      status: "active", // still active but expired → overdue
+    })
+      .populate("memberId", "name memberId mobile")
+      .populate("packageId", "name");
+
+    res.status(200).json({
+      count: subscriptions.length,
+      subscriptions,
+    });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
 };

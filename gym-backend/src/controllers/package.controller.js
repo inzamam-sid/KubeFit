@@ -27,7 +27,14 @@ export const addPackage = async (req, res) => {
 // GET ACTIVE PACKAGES ONLY
 export const getAllPackages = async (req, res) => {
   try {
-    const packages = await Package.find({ isActive: true }).sort({
+    // const packages = await Package.find({ isActive: true })
+    const packages = await Package.find({
+  $or: [
+    { isActive: true },
+    { isActive: { $exists: false } }
+  ]
+})
+    .sort({
       createdAt: -1,
     });
 
