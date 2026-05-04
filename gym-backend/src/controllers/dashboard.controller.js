@@ -66,3 +66,57 @@ export const getDashboardStats = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getRevenueChart = async (req, res) => {
+  try {
+    const { range } = req.query;
+
+    let startDate = new Date();
+
+    // 🔥 Handle filters
+    if (range === "7d") {
+      startDate.setDate(startDate.getDate() - 7);
+    } else if (range === "30d") {
+      startDate.setDate(startDate.getDate() - 30);
+    } else if (range === "month") {
+      startDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    } else {
+      // default 30 days
+      startDate.setDate(startDate.getDate() - 30);
+    }
+
+    const data = await Subscription.aggregate([
+      {
+        $match: {
+          startDate: { $gte: startDate },
+        },
+      },
+      // {
+      //   $group: {
+      //     _id: { $dayOfMonth: "$startDate" }, // daily grouping
+      //     total: { $sum: "$finalPrice" },
+      //   },
+      // },
+      {
+      $group: {
+        _id: {
+          day: { $dayOfMonth: "$startDate" },
+          month: { $month: "$startDate" }
+        },
+        total: { $sum: "$finalPrice" },
+      },
+    },
+      { $sort: { _id: 1 } },
+    ]);
+
+    const formatted = data.map((d) => ({
+      day: d._id,
+      revenue: d.total,
+    }));
+
+    res.json(formatted);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching chart data" });
+  }
+};
+

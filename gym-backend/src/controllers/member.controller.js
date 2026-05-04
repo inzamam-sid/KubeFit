@@ -41,16 +41,52 @@ export const addMember = async (req, res) => {
 };
 
 // GET ALL MEMBERS
+// export const getAllMembers = async (req, res) => {
+//   try {
+//     const members = await Member.find().sort({ createdAt: -1 });
+
+//     res.status(200).json({
+//       count: members.length,
+//       members,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
 export const getAllMembers = async (req, res) => {
   try {
-    const members = await Member.find().sort({ createdAt: -1 });
+    const { search, page = 1, limit = 10 } = req.query;
 
-    res.status(200).json({
-      count: members.length,
+    let query = {};
+
+    if (search) {
+      query = {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { memberId: { $regex: search, $options: "i" } },
+          { mobile: { $regex: search, $options: "i" } },
+        ],
+      };
+    }
+
+    const skip = (page - 1) * limit;
+
+    const members = await Member.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const total = await Member.countDocuments(query);
+
+    res.json({
       members,
+      total,
+      page: Number(page),
+      totalPages: Math.ceil(total / limit),
     });
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching members" });
   }
 };
 
@@ -118,5 +154,30 @@ export const deleteMember = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// SEARCH MEMBERS
+export const getMembers = async (req, res) => {
+  try {
+    const { search } = req.query;
+
+    let query = {};
+
+    if (search) {
+      query = {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { memberId: { $regex: search, $options: "i" } },
+          { mobile: { $regex: search, $options: "i" } },
+        ],
+      };
+    }
+
+    const members = await Member.find(query).sort({ createdAt: -1 });
+
+    res.json({ members });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching members" });
   }
 };
