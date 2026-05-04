@@ -10,20 +10,23 @@ const Members = () => {
     mobile: "",
   });
   const [editId, setEditId] = useState(null);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  // 📥 Fetch Members
+
   const fetchMembers = async () => {
-    try {
-      const res = await API.get("/members");
-      setMembers(res.data.members);
-    } catch (err) {
-      console.log(err);
-    }
+    const res = await API.get(
+      `/members?search=${search}&page=${page}&limit=10`
+    );
+
+    setMembers(res.data.members);
+    setTotalPages(res.data.totalPages);
   };
 
   useEffect(() => {
     fetchMembers();
-  }, []);
+  }, [search, page]);
 
   // ➕ Add Member
   const addMember = async () => {
@@ -101,6 +104,14 @@ const updateMember = async () => {
         </button>
       </div>
 
+      <input
+        type="text"
+        placeholder="Search by name / ID / mobile"
+        className="border p-2 rounded w-full mb-4"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
       {/* 📋 Members List */}
       <table border="1" cellPadding="10">
         <thead>
@@ -127,6 +138,30 @@ const updateMember = async () => {
           ))}
         </tbody>
       </table>
+
+      <div className="flex justify-center mt-4 gap-2">
+
+        <button
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+
+        <span className="px-3 py-1">
+          Page {page} of {totalPages}
+        </span>
+
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage(page + 1)}
+          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+
+      </div>
     </Layout>
   );
 };

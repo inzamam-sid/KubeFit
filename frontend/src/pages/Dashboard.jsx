@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
 import Layout from "../components/Layout";
+import RevenueChart from "../components/RevenueChart";
+import MemberChart from "../components/MemberChart";
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
+  const [chartData, setChartData] = useState([]);
+  const [range, setRange] = useState("30d");
 
   const fetchStats = async () => {
     try {
@@ -14,6 +18,15 @@ const Dashboard = () => {
     }
   };
 
+//   const fetchChart = async () => {
+//   const res = await API.get("/dashboard/revenue-chart");
+//   setChartData(res.data);
+// };
+  const fetchChart = async (selectedRange = "30d") => {
+    const res = await API.get(`/dashboard/revenue-chart?range=${selectedRange}`);
+    setChartData(res.data);
+  };
+
  useEffect(() => {
   const token = localStorage.getItem("token");
 
@@ -21,8 +34,9 @@ const Dashboard = () => {
     window.location.href = "/";
   } else {
     fetchStats();
+    fetchChart(range);
   }
-}, []);
+}, [range]);
 
   if (!stats) return <h2>Loading...</h2>;
 
@@ -37,6 +51,11 @@ const Dashboard = () => {
       <Card title="Expiring Today" value={stats.expiringToday} color="orange" />
       <Card title="Overdue Members" value={stats.overdueMembers} color="red" />
       <Card title="Revenue" value={`₹${stats.monthlyRevenue}`} color="purple" />
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+      <RevenueChart data={chartData} />
+      <MemberChart stats={stats} />
     </div>
   </Layout>
 );
