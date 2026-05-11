@@ -1,49 +1,3 @@
-// import {
-//   PieChart,
-//   Pie,
-//   Cell,
-//   Tooltip,
-//   ResponsiveContainer,
-// } from "recharts";
-
-// const COLORS = ["#22c55e", "#f59e0b", "#ef4444"];
-
-// const MemberChart = ({ stats }) => {
-//   const data = [
-//     { name: "Active", value: stats.activeMembers },
-//     { name: "Hold", value: stats.holdMembers },
-//     { name: "Overdue", value: stats.overdueMembers },
-//   ];
-
-//   return (
-//     <div className="bg-white p-5 rounded-xl shadow">
-//       <h3 className="mb-4 font-semibold">Members Status</h3>
-
-//       <ResponsiveContainer width="100%" height={300}>
-//         <PieChart>
-//           <Pie data={data} dataKey="value" outerRadius={100}>
-//             {data.map((entry, index) => (
-//               <Cell key={index} fill={COLORS[index]} />
-//             ))}
-//           </Pie>
-//           <Tooltip />
-//         </PieChart>
-//       </ResponsiveContainer>
-//     </div>
-//   );
-// };
-
-// export default MemberChart;
-
-
-
-
-
-
-
-
-
-
 import {
   PieChart,
   Pie,
@@ -75,7 +29,7 @@ const MemberChart = ({ stats }) => {
   const totalMembers = stats.activeMembers + stats.holdMembers + stats.overdueMembers;
   
   const data = [
-    { name: "Active Members", value: stats.activeMembers, status: "active", icon: "💪", color: "#22c55e", lightColor: "#10B981" },
+    { name: "Active Subscriptions", value: stats.activeMembers, status: "active", icon: "💪", color: "#22c55e", lightColor: "#10B981" },
     { name: "On Hold", value: stats.holdMembers, status: "hold", icon: "⏸️", color: "#f59e0b", lightColor: "#F59E0B" },
     { name: "Overdue", value: stats.overdueMembers, status: "overdue", icon: "⚠️", color: "#ef4444", lightColor: "#EF4444" },
   ].filter(item => item.value > 0);
@@ -126,7 +80,7 @@ const MemberChart = ({ stats }) => {
               {data.value}
             </span>
             <span className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              members ({percentage}%)
+              subscriptions ({percentage}%)
             </span>
           </div>
           <div className="mt-2 pt-2 border-t" style={{ borderColor: isDarkMode ? '#2C2C2E' : '#F3F4F6' }}>
@@ -208,7 +162,7 @@ const MemberChart = ({ stats }) => {
           fontSize="11"
           fill={isDarkMode ? '#9CA3AF' : '#6B7280'}
         >
-          Total Members
+          Total Subscriptions
         </tspan>
       </text>
     );
@@ -226,8 +180,8 @@ const MemberChart = ({ stats }) => {
               </svg>
             </div>
           </div>
-          <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>No member data available</p>
-          <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Add members to see statistics</p>
+          <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>No subscriptions data available</p>
+          <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Add  Subscriptions to see statistics</p>
         </div>
       </div>
     );
@@ -248,7 +202,7 @@ const MemberChart = ({ stats }) => {
           </div>
           <div>
             <h3 className={`font-bold text-sm sm:text-base ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Member Distribution
+               Subscription Distribution
             </h3>
             <p className={`text-[10px] ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
               Active vs Hold vs Overdue
