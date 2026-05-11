@@ -32,6 +32,10 @@ const subscriptionSchema = new mongoose.Schema(
       type: Date,
     },
 
+    autoResumeDate: {
+      type: Date,
+    },
+
     totalHoldDays: {
       type: Number,
       default: 0,
