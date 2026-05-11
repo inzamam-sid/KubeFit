@@ -7,6 +7,8 @@ import {
   getAllSubscriptions,
   getExpiringToday,
   getOverdueSubscriptions,
+  getLatestSubscription,
+  exportSubscriptionsCSV,
 } from "../controllers/subscription.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 
@@ -21,5 +23,15 @@ router.get("/hold", verifyToken, getHoldSubscriptions);
 router.get("/", verifyToken, getAllSubscriptions);
 router.get("/expiring-today", verifyToken, getExpiringToday);
 router.get("/overdue", verifyToken, getOverdueSubscriptions);
+router.get(
+  "/member/:memberId/latest",
+  verifyToken,
+  getLatestSubscription
+);
+router.get(
+  "/export/csv",
+  verifyToken,
+  exportSubscriptionsCSV
+);
 
 export default router;
