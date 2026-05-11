@@ -2,66 +2,6 @@ import Subscription from "../models/subscription.model.js";
 import Member from "../models/member.model.js";
 import Package from "../models/package.model.js";
 
-// export const addSubscription = async (req, res) => {
-//   try {
-//     const { memberId, packageId, finalPrice } = req.body;
-
-//     // 1. Validate member
-//     const member = await Member.findById(memberId);
-//     if (!member) {
-//       return res.status(404).json({ message: "Member not found" });
-//     }
-
-//     // 2. Validate package
-//     const pkg = await Package.findById(packageId);
-//     if (!pkg || !pkg.isActive) {
-//       return res.status(404).json({ message: "Package not found or inactive" });
-//     }
-
-//     const today = new Date();
-
-//     // 3. Check existing active subscription
-//     const existing = await Subscription.findOne({
-//       memberId,
-//       status: "active",
-//       endDate: { $gte: today },
-//     });
-
-//     let startDate;
-
-//     if (existing) {
-//       // 🔥 Extend from current subscription
-//       startDate = new Date(existing.endDate);
-//     } else {
-//       // Fresh start
-//       startDate = new Date();
-//     }
-
-//     // 4. Calculate endDate
-//     const endDate = new Date(startDate);
-//     endDate.setDate(endDate.getDate() + pkg.duration);
-
-//     // 5. Pricing
-//     const actualPrice = pkg.price;
-//     const priceToStore = finalPrice || actualPrice;
-
-//     const subscription = await Subscription.create({
-//       memberId,
-//       packageId,
-//       startDate,
-//       endDate,
-//       actualPrice,
-//       finalPrice: priceToStore,
-//     });
-
-//     res.status(201).json({
-//       message: "Subscription created successfully",
-//       subscription,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// };
 
 export const addSubscription = async (req, res) => {
   try {
@@ -82,10 +22,49 @@ export const addSubscription = async (req, res) => {
       return res.status(404).json({ message: "Invalid package" });
     }
 
-    const startDate = new Date();
+    // const startDate = new Date();
 
+    // const endDate = new Date(startDate);
+    // endDate.setDate(endDate.getDate() + (pkg.duration || 0));
+    const today = new Date();
+
+    const existingSubscription = await Subscription.findOne({
+      memberId,
+      status: "active",
+      endDate: { $gte: today },
+    }).sort({ endDate: -1 });
+
+    let startDate;
+
+    // ✅ Manual start date
+    if (req.body.startDate) {
+      startDate = new Date(req.body.startDate);
+
+      // Prevent overlap
+      if (
+        existingSubscription &&
+        startDate < existingSubscription.endDate
+      ) {
+        return res.status(400).json({
+          message: `Member already active until ${existingSubscription.endDate.toDateString()}`,
+        });
+      }
+    } else {
+      // ✅ Smart auto renewal
+
+      if (existingSubscription) {
+        startDate = new Date(existingSubscription.endDate);
+      } else {
+        startDate = today;
+      }
+    }
+
+    // Calculate end date
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + (pkg.duration || 0));
+
+    endDate.setDate(
+      endDate.getDate() + pkg.duration
+    );
 
     const actualPrice = pkg.price;
     const priceToStore =
@@ -127,8 +106,33 @@ export const holdSubscription = async (req, res) => {
       return res.status(400).json({ message: "Only active subscription can be held" });
     }
 
+    // subscription.status = "hold";
+    // subscription.holdStartDate = new Date();
+    const today = new Date();
+
+    // Max hold limit
+    if (subscription.totalHoldDays >= 30) {
+      return res.status(400).json({
+        message: "Maximum hold limit reached (30 days)",
+      });
+    }
+
+    // Remaining hold days
+    const remainingHoldDays =
+      30 - subscription.totalHoldDays;
+
+    // Auto resume date
+    const autoResumeDate = new Date(today);
+
+    autoResumeDate.setDate(
+      autoResumeDate.getDate() + remainingHoldDays
+    );
+
     subscription.status = "hold";
-    subscription.holdStartDate = new Date();
+
+    subscription.holdStartDate = today;
+
+    subscription.autoResumeDate = autoResumeDate;
 
     await subscription.save();
 
@@ -168,9 +172,11 @@ export const resumeSubscription = async (req, res) => {
     subscription.endDate.setDate(subscription.endDate.getDate() + holdDays);
 
     // Update fields
-    subscription.totalHoldDays += holdDays;
+    //subscription.totalHoldDays += holdDays;
+    subscription.totalHoldDays = 0;
     subscription.status = "active";
     subscription.holdStartDate = null;
+    subscription.autoResumeDate = null;
 
     await subscription.save();
 
@@ -262,3 +268,65 @@ export const getOverdueSubscriptions = async (req, res) => {
   }
 };
 
+
+export const getLatestSubscription = async (req, res) => { 
+  try {
+    const { memberId } = req.params; // /subscriptions/latest/:memberId
+
+    const subscription = await Subscription.findOne({
+      memberId,  
+      status: "active",
+    })
+      .sort({ endDate: -1 })
+      .populate("packageId", "name");
+
+    if (!subscription) {
+      return res.status(404).json({
+        message: "No active subscription",
+      });
+    }
+
+    res.status(200).json(subscription);
+  } catch (error) {
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+
+export const exportSubscriptionsCSV = async (req, res) => {
+  try {
+    const subscriptions = await Subscription.find()
+      .populate("memberId", "name memberId")
+      .populate("packageId", "name")
+      .sort({ createdAt: -1 });
+
+    let csv =
+      // "Member Name,Member ID,Package,Start Date,End Date,Status\n";
+      "Member Name,Member ID,Package,Start Date,End Date,Final Price,Status\n";
+
+    subscriptions.forEach((sub) => {
+      csv += `${sub.memberId?.name || ""},`;
+      csv += `${sub.memberId?.memberId || ""},`;
+      csv += `${sub.packageId?.name || ""},`;
+      csv += `${new Date(sub.startDate).toLocaleDateString()},`;
+      csv += `${new Date(sub.endDate).toLocaleDateString()},`;
+      csv += `${sub.finalPrice},`;
+      csv += `${sub.status}\n`;
+    });
+
+    res.header("Content-Type", "text/csv");
+
+    res.attachment("subscriptions.csv");
+
+    return res.send(csv);
+
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      message: "Error exporting subscriptions",
+    });
+  }
+};

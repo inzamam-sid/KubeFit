@@ -8,7 +8,13 @@ export const registerAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const existing = await Admin.findOne({ email });
+    const existingAdmin = await Admin.findOne();
+
+    if (existingAdmin) {
+      return res.status(403).json({
+        message: "Only one admin allowed",
+      });
+    }
     if (existing) {
       return res.status(400).json({ message: "Admin already exists" });
     }
@@ -121,5 +127,75 @@ export const logoutAdmin = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+
+export const changePassword = async (req, res) => {
+  try {
+    const adminId = req.user.id;
+
+    const {
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    } = req.body;
+
+    // Validation
+    if (
+      !currentPassword ||
+      !newPassword ||
+      !confirmPassword
+    ) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        message: "Passwords do not match",
+      });
+    }
+
+    const admin = await Admin.findById(adminId);
+
+    if (!admin) {
+      return res.status(404).json({
+        message: "Admin not found",
+      });
+    }
+
+    // Check old password
+    const isMatch = await bcrypt.compare(
+      currentPassword,
+      admin.password
+    );
+
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Current password incorrect",
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(
+      newPassword,
+      10
+    );
+
+    admin.password = hashedPassword;
+
+    await admin.save();
+
+    res.status(200).json({
+      message: "Password changed successfully",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Internal server error",
+    });
   }
 };

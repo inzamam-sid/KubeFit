@@ -1,3 +1,6 @@
+import { Parser } from "json2csv";
+import csv from "csv-parser";
+import stream from "stream";
 import Member from "../models/member.model.js";
 import { memberSchema } from "../utils/validation.js";
 
@@ -179,5 +182,115 @@ export const getMembers = async (req, res) => {
     res.json({ members });
   } catch (err) {
     res.status(500).json({ message: "Error fetching members" });
+  }
+};
+
+
+// EXPORT MEMBERS AS CSV
+export const exportMembersCSV = async (req, res) => {
+  try {
+    const members = await Member.find();
+
+    let csv =
+      "name,memberId,mobile\n";
+
+    members.forEach((member) => {
+      csv += `${member.name},${member.memberId},${member.mobile}\n`;
+    });
+
+    res.header("Content-Type", "text/csv");
+
+    res.attachment("members.csv");
+
+    return res.send(csv);
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Error exporting CSV",
+    });
+  }
+};
+
+
+// IMPORT MEMBERS FROM CSV
+export const importMembersCSV = async (req, res) => {
+  try {
+    const results = [];
+
+    const bufferStream = new stream.PassThrough();
+
+    bufferStream.end(req.file.buffer);
+
+    bufferStream
+      .pipe(csv())
+      .on("data", (data) => {
+        results.push(data);
+      })
+      .on("end", async () => {
+
+        let inserted = 0;
+
+        for (const item of results) {
+
+          const existing = await Member.findOne({
+            memberId: item.memberId,
+          });
+
+          // Skip duplicates
+          if (existing) continue;
+
+          await Member.create({
+            name: item.name,
+            memberId: item.memberId,
+            mobile: item.mobile,
+          });
+
+          inserted++;
+        }
+
+        res.status(200).json({
+          message: `${inserted} members imported successfully`,
+        });
+      });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "CSV import failed",
+    });
+  }
+};
+
+// DOWNLOAD SAMPLE CSV
+export const downloadSampleCSV = async (req, res) => {
+  try {
+    const sampleData = [
+      {
+        name: "Ali Khan",
+        memberId: "M001",
+        mobile: "9876543210",
+      },
+      {
+        name: "Ahmed",
+        memberId: "M002",
+        mobile: "9999999999",
+      },
+    ];
+
+    const fields = ["name", "memberId", "mobile"];
+
+    const json2csv = new Parser({ fields });
+
+    const csv = json2csv.parse(sampleData);
+
+    res.header("Content-Type", "text/csv");
+
+    res.attachment("sample-members.csv");
+
+    return res.send(csv);
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Sample CSV download failed",
+    });
   }
 };
