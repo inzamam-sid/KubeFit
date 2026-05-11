@@ -44,6 +44,7 @@ const Subscriptions = () => {
     memberId: "",
     packageId: "",
     finalPrice: "",
+    startDate: "", // ✅ ADDED: startDate field
   });
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +52,9 @@ const Subscriptions = () => {
     const saved = localStorage.getItem("theme");
     return saved ? saved === "dark" : true;
   });
+  
+  // ✅ ADDED: State for latest subscription
+  const [latestSubscription, setLatestSubscription] = useState(null);
 
   const gradients = getGradients(isDarkMode);
   const bgGradient = isDarkMode 
@@ -58,10 +62,24 @@ const Subscriptions = () => {
     : 'radial-gradient(ellipse at 20% 30%, #f5f0ff 0%, #e8eaff 100%)';
 
   // 📥 Fetch members
+  // const fetchMembers = async () => {
+  //   setIsLoading(true);
+  //   try {
+  //     const res = await API.get("/members");
+  //     setMembers(res.data.members);
+  //   } catch (err) {
+  //     console.log(err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // 📥 Fetch members
   const fetchMembers = async () => {
     setIsLoading(true);
     try {
-      const res = await API.get("/members");
+      // Fetch all members by setting a high limit
+      const res = await API.get("/members?limit=1000&page=1");
       setMembers(res.data.members);
     } catch (err) {
       console.log(err);
@@ -77,6 +95,16 @@ const Subscriptions = () => {
       setPackages(res.data.packages);
     } catch (err) {
       console.log(err);
+    }
+  };
+
+  // ✅ ADDED: Fetch latest subscription for a member
+  const fetchLatestSubscription = async (memberId) => {
+    try {
+      const res = await API.get(`/subscriptions/member/${memberId}/latest`);
+      setLatestSubscription(res.data);
+    } catch (err) {
+      setLatestSubscription(null);
     }
   };
 
@@ -108,8 +136,9 @@ const Subscriptions = () => {
         finalPrice: form.finalPrice ? Number(form.finalPrice) : undefined,
       });
       alert("✅ Subscription created successfully!");
-      setForm({ memberId: "", packageId: "", finalPrice: "" });
+      setForm({ memberId: "", packageId: "", finalPrice: "", startDate: "" });
       setSelectedPackage(null);
+      setLatestSubscription(null); // Clear latest subscription after creation
     } catch (err) {
       alert(err.response?.data?.message || "Error creating subscription");
     }
@@ -229,8 +258,8 @@ const Subscriptions = () => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Member Dropdown */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Member Dropdown - UPDATED with onChange handler */}
                 <div className="relative group/field">
                   <label className={`block text-xs sm:text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     Select Member
@@ -239,7 +268,13 @@ const Subscriptions = () => {
                     <div className="absolute -inset-px bg-gradient-to-r from-red-500 to-orange-500 rounded-xl blur opacity-0 group-hover/field:opacity-50 transition-all duration-500" />
                     <select
                       value={form.memberId}
-                      onChange={(e) => setForm({ ...form, memberId: e.target.value })}
+                      onChange={(e) => {
+                        setForm({
+                          ...form,
+                          memberId: e.target.value,
+                        });
+                        fetchLatestSubscription(e.target.value);
+                      }}
                       className={`relative w-full px-4 py-3 rounded-xl border transition-all duration-300 appearance-none text-sm sm:text-base ${
                         isDarkMode 
                           ? 'border-gray-700 bg-black/60 text-white focus:ring-red-500'
@@ -352,7 +387,82 @@ const Subscriptions = () => {
                     </div>
                   )}
                 </div>
+
+                {/* ✅ ADDED: Start Date Input */}
+                <div className="relative group/field">
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Start Date
+                  </label>
+                  <div className="relative">
+                    <div className="absolute -inset-px bg-gradient-to-r from-red-500 to-orange-500 rounded-xl blur opacity-0 group-hover/field:opacity-50 transition-all duration-500" />
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg className={`w-4 h-4 ${isDarkMode ? 'text-blue-500' : 'text-purple-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </span>
+                      <input
+                        type="date"
+                        value={form.startDate}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            startDate: e.target.value,
+                          })
+                        }
+                        className={`relative w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-300 text-sm sm:text-base ${
+                          isDarkMode 
+                            ? 'border-gray-700 bg-black/60 text-white focus:ring-red-500'
+                            : 'border-gray-300 bg-white/60 text-gray-900 focus:ring-purple-500'
+                        } focus:outline-none focus:ring-2 focus:border-transparent`}
+                      />
+                    </div>
+                  </div>
+                  {form.startDate && (
+                    <div className="mt-2 flex items-center gap-2 animate-slideDown">
+                      <svg className="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-blue-500 text-xs">
+                        📅 Subscription starts on {new Date(form.startDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* ✅ ADDED: Existing Subscription Alert */}
+              {latestSubscription && (
+                <div className={`mt-6 p-4 rounded-xl border animate-slideDown ${
+                  isDarkMode 
+                    ? 'bg-yellow-500/10 border-yellow-500/30' 
+                    : 'bg-yellow-50 border-yellow-300'
+                }`}>
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-yellow-500/20">
+                        <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <p className={`font-semibold text-sm ${isDarkMode ? 'text-yellow-400' : 'text-yellow-700'}`}>
+                        Existing Active Subscription
+                      </p>
+                      <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Package: <span className="font-medium">{latestSubscription.packageId?.name}</span>
+                      </p>
+                      <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Ends On: <span className="font-medium">{new Date(latestSubscription.endDate).toDateString()}</span>
+                      </p>
+                      <p className={`text-xs mt-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                        ⚠️ Renewal will automatically start after current plan ends.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="mt-8 flex flex-wrap gap-3">
@@ -372,8 +482,9 @@ const Subscriptions = () => {
                 
                 <button
                   onClick={() => {
-                    setForm({ memberId: "", packageId: "", finalPrice: "" });
+                    setForm({ memberId: "", packageId: "", finalPrice: "", startDate: "" });
                     setSelectedPackage(null);
+                    setLatestSubscription(null);
                   }}
                   className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base ${
                     isDarkMode 
@@ -412,7 +523,7 @@ const Subscriptions = () => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div className={`p-4 rounded-xl transition-all duration-300 hover:scale-105 ${
                     isDarkMode ? 'bg-gray-800/50' : 'bg-gray-100/50'
                   }`}>
@@ -472,6 +583,28 @@ const Subscriptions = () => {
                     {form.finalPrice && selectedPackage && Number(form.finalPrice) !== selectedPackage.price && (
                       <p className={`text-xs mt-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                         {Number(form.finalPrice) < selectedPackage.price ? '✨ Discount Applied' : '⚠️ Custom Price'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* ✅ ADDED: Start Date in Summary */}
+                  <div className={`p-4 rounded-xl transition-all duration-300 hover:scale-105 ${
+                    isDarkMode ? 'bg-gray-800/50' : 'bg-gray-100/50'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg" style={{ background: gradients.blue }}>
+                        📅
+                      </div>
+                      <div>
+                        <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Start Date</p>
+                        <p className={`font-semibold text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {form.startDate ? new Date(form.startDate).toLocaleDateString() : "Not set"}
+                        </p>
+                      </div>
+                    </div>
+                    {form.startDate && (
+                      <p className={`text-xs mt-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                        Subscription will begin on this date
                       </p>
                     )}
                   </div>

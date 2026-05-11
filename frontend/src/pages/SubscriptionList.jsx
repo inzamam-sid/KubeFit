@@ -49,6 +49,8 @@ const SubscriptionList = () => {
     return saved ? saved === "dark" : true;
   });
   const [hoveredRow, setHoveredRow] = useState(null);
+  // ✅ ADDED: Search state
+  const [searchTerm, setSearchTerm] = useState("");
 
   const gradients = getGradients(isDarkMode);
   const bgGradient = isDarkMode 
@@ -74,6 +76,27 @@ const SubscriptionList = () => {
   useEffect(() => {
     localStorage.setItem("theme", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
+
+   // ✅ ADDED: Search function
+  const filterBySearch = (subscription) => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    
+    // Search by member name
+    const memberName = subscription.memberId?.name?.toLowerCase() || "";
+    if (memberName.includes(searchLower)) return true;
+    
+    // Search by member ID
+    const memberId = subscription.memberId?.memberId?.toLowerCase() || "";
+    if (memberId.includes(searchLower)) return true;
+    
+    // Search by package name
+    const packageName = subscription.packageId?.name?.toLowerCase() || "";
+    if (packageName.includes(searchLower)) return true;
+    
+    return false;
+  };
 
   // ⏸ Hold
   const holdSub = async (id) => {
@@ -119,10 +142,18 @@ const SubscriptionList = () => {
     return "⛔";
   };
 
-  // Filter subscriptions
+  // // Filter subscriptions
+  // const filteredSubscriptions = subscriptions.filter(sub => {
+  //   if (filter === "all") return true;
+  //   return sub.status === filter;
+  // });
+  // Filter subscriptions by status AND search
   const filteredSubscriptions = subscriptions.filter(sub => {
-    if (filter === "all") return true;
-    return sub.status === filter;
+    // First filter by status
+    const statusMatch = filter === "all" ? true : sub.status === filter;
+    // Then filter by search
+    const searchMatch = filterBySearch(sub);
+    return statusMatch && searchMatch;
   });
 
   const stats = {
@@ -235,6 +266,51 @@ const SubscriptionList = () => {
             ))}
           </div>
 
+
+            {/* ✅ ADDED: Premium Search Bar */}
+          <div className="relative">
+            <div className="relative group">
+              <div className="absolute -inset-px bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl blur opacity-0 group-hover:opacity-50 transition-all duration-500" />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <svg className={`h-5 w-5 ${isDarkMode ? 'text-red-500' : 'text-purple-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="🔍 Search by member name, member ID, or package name..."
+                  className={`w-full pl-12 pr-4 py-3.5 rounded-2xl border transition-all duration-300 text-sm sm:text-base ${
+                    isDarkMode 
+                      ? 'border-gray-700 bg-black/60 text-white placeholder-gray-500 focus:ring-red-500'
+                      : 'border-gray-300 bg-white/60 text-gray-900 placeholder-gray-400 focus:ring-purple-500'
+                  } focus:outline-none focus:ring-2 focus:border-transparent`}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                  >
+                    <svg className={`h-5 w-5 transition-colors ${isDarkMode ? 'text-gray-500 hover:text-red-500' : 'text-gray-400 hover:text-purple-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+            {/* ✅ ADDED: Search results count */}
+            {searchTerm && (
+              <div className="mt-2 text-right">
+                <span className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Found {filteredSubscriptions.length} result{filteredSubscriptions.length !== 1 ? 's' : ''} for "{searchTerm}"
+                </span>
+              </div>
+            )}
+          </div>
+
+
           {/* Premium Filter Tabs */}
           <div className="flex flex-wrap gap-2 sm:gap-3">
             {[
@@ -276,6 +352,47 @@ const SubscriptionList = () => {
             
             <div className="relative p-4 sm:p-6 md:p-8">
               <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <button
+  onClick={async () => {
+    try {
+      const res = await API.get(
+        "/subscriptions/export/csv",
+        {
+          responseType: "blob",
+        }
+      );
+
+      const url = window.URL.createObjectURL(
+        new Blob([res.data])
+      );
+
+      const link = document.createElement("a");
+
+      link.href = url;
+
+      link.setAttribute(
+        "download",
+        "subscriptions.csv"
+      );
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      link.remove();
+
+    } catch (err) {
+      console.log(err);
+      alert("Export failed");
+    }
+  }}
+  className="px-5 py-2 rounded-xl text-white font-semibold transition-all duration-300 hover:scale-105"
+  style={{
+    background: gradients.brand,
+  }}
+>
+  📥 Export CSV
+</button>
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur-lg animate-pulse" />
@@ -320,6 +437,7 @@ const SubscriptionList = () => {
                         <th className={`px-3 sm:px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-red-400' : 'text-purple-600'}`}>Package</th>
                         <th className={`px-3 sm:px-4 py-3 text-center text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-red-400' : 'text-purple-600'}`}>Start Date</th>
                         <th className={`px-3 sm:px-4 py-3 text-center text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-red-400' : 'text-purple-600'}`}>End Date</th>
+                         <th className={`px-3 sm:px-4 py-3 text-center text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-red-400' : 'text-purple-600'}`}>Final Price</th>
                         <th className={`px-3 sm:px-4 py-3 text-center text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-red-400' : 'text-purple-600'}`}>Status</th>
                         <th className={`px-3 sm:px-4 py-3 text-center text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-red-400' : 'text-purple-600'}`}>Action</th>
                       </tr>
@@ -395,6 +513,18 @@ const SubscriptionList = () => {
                                 <p className="text-[10px] text-yellow-500 mt-0.5">Expiring soon!</p>
                               )}
                             </td>
+
+                            <td className="px-3 sm:px-4 py-3 sm:py-4 text-center">
+                              <div
+                                className={`inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-bold ${
+                                  isDarkMode
+                                    ? "bg-green-500/10 text-green-400"
+                                    : "bg-green-100 text-green-700"
+                                }`}
+                              >
+                                ₹{s.finalPrice}
+                              </div>
+                            </td>
                             
                             <td className="px-3 sm:px-4 py-3 sm:py-4 text-center">
                               <span className={`inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-white text-xs sm:text-sm font-medium shadow-lg ${getStatusBadgeClass(s.status)}`}>
@@ -449,7 +579,7 @@ const SubscriptionList = () => {
                     </tbody>
                    </table>
                   
-                  {filteredSubscriptions.length === 0 && (
+                  {/* {filteredSubscriptions.length === 0 && (
                     <div className="text-center py-16">
                       <div className="relative inline-block">
                         <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-full blur-2xl animate-pulse" />
@@ -466,7 +596,27 @@ const SubscriptionList = () => {
                         Subscribe members to see them here
                       </p>
                     </div>
-                  )}
+                  )} */}
+
+                    {filteredSubscriptions.length === 0 && (
+                      <div className="text-center py-16">
+                        <div className="relative inline-block">
+                          <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-full blur-2xl animate-pulse" />
+                          <div className={`relative inline-flex items-center justify-center w-24 h-24 rounded-full mb-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                            <svg className={`w-12 h-12 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                          </div>
+                        </div>
+                        <p className={`text-base font-medium mt-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          No {filter !== "all" ? filter : ""} subscriptions found
+                        </p>
+                        <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
+                          {searchTerm ? `No results matching "${searchTerm}"` : "Subscribe members to see them here"}
+                        </p>
+                      </div>
+                    )}
+
                 </div>
               )}
             </div>
@@ -590,3 +740,9 @@ const SubscriptionList = () => {
 };
 
 export default SubscriptionList;
+
+
+
+
+
+

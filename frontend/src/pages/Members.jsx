@@ -89,6 +89,30 @@ const Members = () => {
     localStorage.setItem("theme", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
 
+
+  // ✅ ADDED: Import CSV function
+  const importCSV = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    
+    try {
+      const res = await API.post("/members/import/csv", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      alert(res.data.message);
+      fetchMembers();
+    } catch (err) {
+      alert("Import failed");
+    }
+  };
+
+
+
   const addMember = async () => {
     if (!form.name || !form.memberId || !form.mobile) {
       alert("⚠️ Please fill all fields");
@@ -281,7 +305,7 @@ const Members = () => {
                 </div>
               </div>
               
-              <div className="mt-6 flex flex-wrap gap-3">
+              {/* <div className="mt-6 flex flex-wrap gap-3">
                 <button
                   onClick={editId ? updateMember : addMember}
                   className="group relative inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 overflow-hidden text-sm sm:text-base text-white"
@@ -324,7 +348,119 @@ const Members = () => {
                 )}
               </div>
             </div>
+          </div> */}
+
+
+
+          {/* ✅ ADDED: Action Buttons Row with Export and Import */}
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  onClick={editId ? updateMember : addMember}
+                  className="group relative inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 overflow-hidden text-sm sm:text-base text-white"
+                  style={{ background: gradients.brand, boxShadow: '0 10px 30px rgba(255, 59, 48, 0.4)' }}
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    {editId ? (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Update Member
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Add Member
+                      </>
+                    )}
+                  </span>
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                </button>
+                
+                {editId && (
+                  <button
+                    onClick={() => {
+                      setEditId(null);
+                      setForm({ name: "", memberId: "", mobile: "" });
+                    }}
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 text-sm sm:text-base ${
+                      isDarkMode 
+                        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Cancel
+                  </button>
+                )}
+
+                {/* ✅ ADDED: Export CSV Button */}
+                <button
+                  onClick={() => {
+                    window.open(
+                      "http://localhost:5000/api/members/export/csv",
+                      "_blank"
+                    );
+                  }}
+                  className="group relative inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 overflow-hidden text-sm sm:text-base text-white"
+                  style={{ background: gradients.green, boxShadow: '0 10px 30px rgba(16, 185, 129, 0.4)' }}
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export CSV
+                  </span>
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                </button>
+
+                {/* ✅ ADDED: Import CSV Button with hidden file input */}
+                <label className="group relative inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 overflow-hidden text-sm sm:text-base text-white cursor-pointer"
+                  style={{ background: gradients.blue, boxShadow: '0 10px 30px rgba(59, 130, 246, 0.4)' }}>
+                  <span className="relative z-10 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Import CSV
+                  </span>
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={importCSV}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                </label>
+
+                  {/* ✅ ADDED: Download Sample CSV Button */}
+                {/* <button
+                  onClick={() => {
+                    window.open(
+                      "http://localhost:5000/api/members/sample/csv",
+                      "_blank"
+                    );
+                  }}
+                  className="group relative inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 overflow-hidden text-sm sm:text-base text-white"
+                  style={{ background: gradients.purple, boxShadow: '0 10px 30px rgba(139, 92, 246, 0.4)' }}
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download Sample CSV
+                  </span>
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                </button> */}
+
+
+
+              </div>
+            </div>
           </div>
+
+
+
 
           {/* Premium Search Section */}
           <div className="relative">

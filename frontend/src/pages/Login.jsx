@@ -29,7 +29,16 @@ const Login = () => {
 
     try {
       const res = await API.post("/auth/login", form);
-      localStorage.setItem("token", res.data.accessToken);
+      // localStorage.setItem("token", res.data.accessToken);
+      localStorage.setItem(
+        "token",
+        res.data.accessToken
+      );
+
+      localStorage.setItem(
+        "refreshToken",
+        res.data.refreshToken
+      );
       alert("Login successful");
       window.location.href = "/dashboard";
     } catch (err) {

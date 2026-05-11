@@ -92,10 +92,10 @@ const Dashboard = () => {
 
   const statsData = [
     { title: "Total Members", value: stats.totalMembers, gradient: theme.info, icon: "👥", subtitle: "All registered members", desc: "+12% this month", trend: "up", color: "blue" },
-    { title: "Active Members", value: stats.activeMembers, gradient: theme.success, icon: "💪", subtitle: "Currently active", desc: "+8% vs last month", trend: "up", color: "green" },
-    { title: "Hold Members", value: stats.holdMembers, gradient: theme.warning, icon: "⏸️", subtitle: "On temporary hold", desc: "2 new this week", trend: "neutral", color: "orange" },
-    { title: "Expiring Today", value: stats.expiringToday, gradient: theme.danger, icon: "⚠️", subtitle: "Memberships ending today", desc: "Renewal needed", trend: "down", color: "red" },
-    { title: "Overdue Members", value: stats.overdueMembers, gradient: theme.danger, icon: "🔴", subtitle: "Payment overdue", desc: "Action required", trend: "down", color: "crimson" },
+    { title: "Active Subscriptions", value: stats.activeMembers, gradient: theme.success, icon: "💪", subtitle: "Currently active", desc: "+8% vs last month", trend: "up", color: "green" },
+    { title: "Hold Subscriptions", value: stats.holdMembers, gradient: theme.warning, icon: "⏸️", subtitle: "On temporary hold", desc: "2 new this week", trend: "neutral", color: "orange" },
+    { title: "Expiring Today", value: stats.expiringToday, gradient: theme.danger, icon: "⚠️", subtitle: "Subscriptions ending today", desc: "Renewal needed", trend: "down", color: "red" },
+    { title: "Overdue Subscriptions", value: stats.overdueMembers, gradient: theme.danger, icon: "🔴", subtitle: "Payment overdue", desc: "Action required", trend: "down", color: "crimson" },
     { title: "Monthly Revenue", value: `₹${stats.monthlyRevenue}`, gradient: theme.gold, icon: "💰", subtitle: "This month's revenue", desc: "+23% growth", trend: "up", color: "gold" },
   ];
 
