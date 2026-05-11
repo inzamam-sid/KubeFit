@@ -10,6 +10,7 @@ import Packages from "./pages/Packages";
 import Subscriptions from "./pages/Subscriptions";
 import SubscriptionList from "./pages/SubscriptionList";
 import Alerts from "./pages/Alerts";
+import ChangePassword from "./pages/ChangePassword";
 
 
 
@@ -28,6 +29,10 @@ function App() {
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/subscriptions-list" element={<SubscriptionList />} />
         <Route path="/alerts" element={<Alerts />} />
+        <Route
+          path="/change-password"
+          element={<ChangePassword />}
+        />
       </Routes>
     </BrowserRouter>
   );
