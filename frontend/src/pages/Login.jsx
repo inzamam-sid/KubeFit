@@ -42,8 +42,15 @@ const Login = () => {
       alert("Login successful");
       window.location.href = "/dashboard";
     } catch (err) {
-      setError("Invalid email or password. Please try again.");
-      alert("Invalid credentials");
+      // setError("Invalid email or password. Please try again.");
+      // alert("Invalid credentials");
+      console.log(err);
+
+  alert(
+    JSON.stringify(
+      err.response?.data || err.message
+    )
+  );
     } finally {
       setIsLoading(false);
     }
