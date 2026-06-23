@@ -38,10 +38,10 @@ const PublicNavbar = ({ isDarkMode = true, onThemeToggle }) => {
   }, []);
 
   const navItems = [
-    { name: "Home", path: "/", icon: "🏠" },
-    { name: "About", path: "/about", icon: "ℹ️" },
-    { name: "Contact", path: "/contact", icon: "📞" },
-    { name: "FAQ", path: "/faq", icon: "❓" },
+    { name: "Home", path: "/", icon: "" },
+    { name: "About", path: "/about", icon: "" },
+    { name: "Contact", path: "/contact", icon: "" },
+    { name: "FAQ", path: "/faq", icon: "" },
   ];
 
   const isActive = (path) => location.pathname === path;

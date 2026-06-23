@@ -73,7 +73,7 @@ const Login = () => {
 
       <div className="relative z-10 w-full max-w-md px-4 sm:px-6">
         {/* Back to Home Button */}
-        <div className="absolute top-4 left-4 sm:top-6 sm:left-6">
+        {/* <div className="absolute top-4 left-4 sm:top-6 sm:left-6">
           <button
             onClick={() => navigate("/")}
             className="group relative overflow-hidden px-3 sm:px-4 py-2 rounded-lg font-medium text-white transition-all duration-300 hover:scale-105 flex items-center gap-2 text-sm sm:text-base"
@@ -84,6 +84,43 @@ const Login = () => {
             </svg>
             <span className="hidden sm:inline">Back to Home</span>
             <span className="sm:hidden">Home</span>
+          </button>
+        </div> */}
+
+        <div className="flex justify-center mb-8">
+          <button
+            onClick={() => navigate("/")}
+            className="
+              group
+              flex items-center gap-2
+              px-5 py-2.5
+              rounded-full
+              text-gray-300
+              hover:text-white
+              border border-white/10
+              bg-white/5
+              backdrop-blur-xl
+              hover:border-orange-500/40
+              hover:bg-orange-500/10
+              transition-all duration-300
+              hover:shadow-lg hover:shadow-orange-500/20
+            "
+          >
+            <svg
+              className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+
+            <span>Back to Home</span>
           </button>
         </div>
 
