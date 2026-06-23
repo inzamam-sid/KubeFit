@@ -21,8 +21,9 @@ const app = express();
 // app.use(cors());
 app.use(
   cors({
-    origin: ["http://localhost:5173",
-      "https://kube-fit.vercel.app",], // your frontend
+    // origin: ["http://localhost:5173",
+    //   "https://kube-fit.vercel.app",], // your frontend
+    origin: true,
     credentials: true,
   })
 );
