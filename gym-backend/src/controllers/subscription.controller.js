@@ -169,11 +169,18 @@ export const resumeSubscription = async (req, res) => {
     );
 
     // Extend endDate
-    subscription.endDate.setDate(subscription.endDate.getDate() + holdDays);
+    //subscription.endDate.setDate(subscription.endDate.getDate() + holdDays);
+    const newEndDate = new Date(subscription.endDate);
+
+    newEndDate.setDate(
+      newEndDate.getDate() + holdDays
+    );
+
+    subscription.endDate = newEndDate;
 
     // Update fields
-    //subscription.totalHoldDays += holdDays;
-    subscription.totalHoldDays = 0;
+    subscription.totalHoldDays += holdDays;
+    //subscription.totalHoldDays = 0;
     subscription.status = "active";
     subscription.holdStartDate = null;
     subscription.autoResumeDate = null;
