@@ -222,7 +222,8 @@ export const getHoldSubscriptions = async (req, res) => {
 export const getAllSubscriptions = async (req, res) => {
   try {
     const subscriptions = await Subscription.find()
-      .populate("memberId", "name memberId")
+      //.populate("memberId", "name memberId")
+       .populate("memberId", "name memberId isActive")
       .populate("packageId", "name");
 
     res.status(200).json({

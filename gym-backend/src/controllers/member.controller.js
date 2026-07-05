@@ -146,64 +146,65 @@ export const updateMember = async (req, res) => {
 
 
 // DELETE MEMBER
-// export const deleteMember = async (req, res) => {
-//   try {
-//     const { id } = req.params;
+export const deleteMember = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-//     const member = await Member.findById(id);
+    const member = await Member.findById(id);
 
-//     if (!member) {
-//       return res.status(404).json({ message: "Member not found" });
-//     }
+    if (!member) {
+      return res.status(404).json({ message: "Member not found" });
+    }
 
-//     const today = new Date();
+    const today = new Date();
 
-//     console.log("Deleting Member:", id);
+    console.log("Deleting Member:", id);
 
-// // const subscriptions = await Subscription.find({ memberId: id });
+// const subscriptions = await Subscription.find({ memberId: id });
 
-// // console.log("Subscriptions found:", subscriptions);
+// console.log("Subscriptions found:", subscriptions);
 
-// // Check if member has any currently valid subscription
-// // const activeSubscription = await Subscription.findOne({
-// //   memberId: id,
-// //   status: { $in: ["active", "hold"] },
-// //   endDate: { $gte: today },
-// // });
-
-// console.log("Member found:", member);
-
-// const subscriptions = await Subscription.find({
-//   memberId: member._id,
-// });
-
-// console.log("Subscriptions:", subscriptions);
-
+// Check if member has any currently valid subscription
 // const activeSubscription = await Subscription.findOne({
-//   memberId: member._id,
+//   memberId: id,
 //   status: { $in: ["active", "hold"] },
+//   endDate: { $gte: today },
 // });
 
-// console.log("Active subscription:", activeSubscription);
+console.log("Member found:", member);
 
-// if (activeSubscription) {
-//   return res.status(400).json({
-//     message:
-//       "Cannot archive member. The member has an active subscription.",
-//   });
-// }
+const subscriptions = await Subscription.find({
+  memberId: member._id,
+});
 
-//     member.isActive = false;
-//     await member.save();
+console.log("Subscriptions:", subscriptions);
 
-//     res.status(200).json({
-//       message: "Member archived successfully",
-//     });
+const activeSubscription = await Subscription.findOne({
+  memberId: member._id,
+  status: { $in: ["active", "hold"] },
+  endDate: { $gte: new Date() },
+});
 
-//   } catch (error) {
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// };
+console.log("Active subscription:", activeSubscription);
+
+if (activeSubscription) {
+  return res.status(400).json({
+    message:
+      "Cannot archive member. The member has an active subscription.",
+  });
+}
+
+    member.isActive = false;
+    await member.save();
+
+    res.status(200).json({
+      message: "Member archived successfully",
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 // export const deleteMember = async (req, res) => {
 //   try {
@@ -242,11 +243,11 @@ export const updateMember = async (req, res) => {
 //     console.log(err);
 //   }
 // };
-export const deleteMember = async (req, res) => {
-  return res.status(500).json({
-    message: "THIS IS NEW CODE",
-  });
-};
+// export const deleteMember = async (req, res) => {
+//   return res.status(500).json({
+//     message: "THIS IS NEW CODE",
+//   });
+// };
 
 // SEARCH MEMBERS
 export const getMembers = async (req, res) => {
@@ -334,10 +335,16 @@ export const importMembersCSV = async (req, res) => {
           // Skip duplicates
           if (existing) continue;
 
+          // await Member.create({
+          //   name: item.name,
+          //   memberId: item.memberId,
+          //   mobile: item.mobile,
+          // });
           await Member.create({
-            name: item.name,
-            memberId: item.memberId,
-            mobile: item.mobile,
+            name: item.name.trim(),
+            memberId: item.memberId.trim(),
+            mobile: item.mobile.trim(),
+            isActive: true,
           });
 
           inserted++;
@@ -354,6 +361,8 @@ export const importMembersCSV = async (req, res) => {
     });
   }
 };
+
+
 
 // DOWNLOAD SAMPLE CSV
 export const downloadSampleCSV = async (req, res) => {
