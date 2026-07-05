@@ -17,6 +17,12 @@ export const addSubscription = async (req, res) => {
       return res.status(404).json({ message: "Member not found" });
     }
 
+    if (!member.isActive) {
+  return res.status(400).json({
+    message: "This member is archived. Restore the member before creating a subscription.",
+  });
+}
+
     const pkg = await Package.findById(packageId);
     if (!pkg || !pkg.isActive) {
       return res.status(404).json({ message: "Invalid package" });

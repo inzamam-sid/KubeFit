@@ -55,7 +55,7 @@ export const loginAdmin = async (req, res) => {
     const accessToken = jwt.sign(
       { id: admin._id },
       process.env.JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "35m" }
     );
 
     // 🔥 Refresh Token (long)
