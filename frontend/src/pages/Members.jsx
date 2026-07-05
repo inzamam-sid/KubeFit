@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
 import Layout from "../components/Layout";
+import toast from "react-hot-toast";
 
 // Ultra-Premium Gradients for both themes
 const getGradients = (isDarkMode) => ({
@@ -128,17 +129,40 @@ const Members = () => {
     }
   };
 
+  // const deleteMember = async (id) => {
+  //   if (window.confirm("⚠️ Are you sure you want to delete this member?")) {
+  //     try {
+  //       await API.delete(`/members/${id}`);
+  //       fetchMembers();
+  //       alert("✅ Member deleted successfully");
+  //     } catch (err) {
+  //       console.log(err);
+  //     }
+  //   }
+  // };
+
   const deleteMember = async (id) => {
-    if (window.confirm("⚠️ Are you sure you want to delete this member?")) {
-      try {
-        await API.delete(`/members/${id}`);
-        fetchMembers();
-        alert("✅ Member deleted successfully");
-      } catch (err) {
-        console.log(err);
-      }
+    if (
+      !window.confirm(
+        "⚠️ Are you sure you want to archive this member?"
+      )
+    )
+      return;
+
+    try {
+      const res = await API.delete(`/members/${id}`);
+
+      toast.success(res.data.message);
+
+      fetchMembers();
+
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+        "Something went wrong"
+      );
     }
-  };
+};
 
   const handleEdit = (member) => {
     setForm({

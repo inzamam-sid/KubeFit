@@ -475,6 +475,15 @@ const SubscriptionList = () => {
                                 <div>
                                   <p className={`font-semibold text-sm sm:text-base ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{s.memberId?.name || "Unknown"}</p>
                                   <p className={`text-[10px] sm:text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{s.memberId?.memberId || "No ID"}</p>
+                                  {s.memberId?.isActive ? (
+                                    <span className="inline-flex items-center px-2 py-1 mt-1 rounded-full bg-green-500/10 text-green-400 text-[10px] font-semibold">
+                                      🟢 Active
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center px-2 py-1 mt-1 rounded-full bg-red-500/10 text-red-400 text-[10px] font-semibold">
+                                      🔴 Archived
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </td>
