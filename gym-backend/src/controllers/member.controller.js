@@ -3,6 +3,7 @@ import csv from "csv-parser";
 import stream from "stream";
 import Member from "../models/member.model.js";
 import { memberSchema } from "../utils/validation.js";
+import Subscription from "../models/subscription.model.js";
 
 export const addMember = async (req, res) => {
   try {
@@ -61,10 +62,14 @@ export const getAllMembers = async (req, res) => {
   try {
     const { search, page = 1, limit = 10 } = req.query;
 
-    let query = {};
+    //let query = {};
+    let query = {
+      isActive: true,
+    };
 
     if (search) {
       query = {
+        isActive: true,
         $or: [
           { name: { $regex: search, $options: "i" } },
           { memberId: { $regex: search, $options: "i" } },
@@ -105,6 +110,7 @@ export const getMemberById = async (req, res) => {
       return res.status(404).json({ message: "Member not found" });
     }
 
+
     res.status(200).json(member);
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
@@ -140,24 +146,106 @@ export const updateMember = async (req, res) => {
 
 
 // DELETE MEMBER
+// export const deleteMember = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     const member = await Member.findById(id);
+
+//     if (!member) {
+//       return res.status(404).json({ message: "Member not found" });
+//     }
+
+//     const today = new Date();
+
+//     console.log("Deleting Member:", id);
+
+// // const subscriptions = await Subscription.find({ memberId: id });
+
+// // console.log("Subscriptions found:", subscriptions);
+
+// // Check if member has any currently valid subscription
+// // const activeSubscription = await Subscription.findOne({
+// //   memberId: id,
+// //   status: { $in: ["active", "hold"] },
+// //   endDate: { $gte: today },
+// // });
+
+// console.log("Member found:", member);
+
+// const subscriptions = await Subscription.find({
+//   memberId: member._id,
+// });
+
+// console.log("Subscriptions:", subscriptions);
+
+// const activeSubscription = await Subscription.findOne({
+//   memberId: member._id,
+//   status: { $in: ["active", "hold"] },
+// });
+
+// console.log("Active subscription:", activeSubscription);
+
+// if (activeSubscription) {
+//   return res.status(400).json({
+//     message:
+//       "Cannot archive member. The member has an active subscription.",
+//   });
+// }
+
+//     member.isActive = false;
+//     await member.save();
+
+//     res.status(200).json({
+//       message: "Member archived successfully",
+//     });
+
+//   } catch (error) {
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
+// export const deleteMember = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     console.log("Deleting member:", id);
+
+//     const member = await Member.findById(id);
+
+//     if (!member) {
+//       return res.status(404).json({ message: "Member not found" });
+//     }
+
+//     const activeSubscription = await Subscription.findOne({
+//       memberId: id,
+//       status: { $in: ["active", "hold"] },
+//       endDate: { $gte: new Date() },
+//     });
+
+//     console.log("Subscription found:", activeSubscription);
+
+//     if (activeSubscription) {
+//       return res.status(400).json({
+//         message: "Cannot archive member. Active subscription exists.",
+//       });
+//     }
+
+//     member.isActive = false;
+//     await member.save();
+
+//     res.json({
+//       message: "Member archived successfully",
+//     });
+
+//   } catch (err) {
+//     console.log(err);
+//   }
+// };
 export const deleteMember = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const member = await Member.findById(id);
-
-    if (!member) {
-      return res.status(404).json({ message: "Member not found" });
-    }
-
-    await Member.findByIdAndDelete(id);
-
-    res.status(200).json({
-      message: "Member deleted successfully",
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
-  }
+  return res.status(500).json({
+    message: "THIS IS NEW CODE",
+  });
 };
 
 // SEARCH MEMBERS
@@ -165,10 +253,14 @@ export const getMembers = async (req, res) => {
   try {
     const { search } = req.query;
 
-    let query = {};
+    //let query = {};
+    let query = {
+      isActive: true,
+    };
 
     if (search) {
       query = {
+         isActive: true,
         $or: [
           { name: { $regex: search, $options: "i" } },
           { memberId: { $regex: search, $options: "i" } },
@@ -189,7 +281,10 @@ export const getMembers = async (req, res) => {
 // EXPORT MEMBERS AS CSV
 export const exportMembersCSV = async (req, res) => {
   try {
-    const members = await Member.find();
+    //const members = await Member.find();
+    const members = await Member.find({
+      isActive: true,
+    });
 
     let csv =
       "name,memberId,mobile\n";
