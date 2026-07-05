@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -17,6 +18,11 @@ import ChangePassword from "./pages/ChangePassword";
 function App() {
   return (
     <BrowserRouter>
+    {/* Toast Container */}
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+      />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
