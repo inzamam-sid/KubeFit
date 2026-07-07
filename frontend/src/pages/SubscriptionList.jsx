@@ -57,17 +57,36 @@ const SubscriptionList = () => {
     ? 'radial-gradient(ellipse at 20% 30%, #1a1a2e 0%, #0a0a0f 100%)'
     : 'radial-gradient(ellipse at 20% 30%, #f5f0ff 0%, #e8eaff 100%)';
 
+  // const fetchSubscriptions = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await API.get("/subscriptions");
+  //     setSubscriptions(res.data.subscriptions);
+  //   } catch (err) {
+  //     console.log(err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const fetchSubscriptions = async () => {
-    setLoading(true);
-    try {
-      const res = await API.get("/subscriptions");
-      setSubscriptions(res.data.subscriptions);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+
+  try {
+    const res = await API.get("/subscriptions");
+
+    console.log("FULL RESPONSE:", res);
+    console.log("DATA:", res.data);
+    console.log("subscriptions:", res.data.subscriptions);
+
+    setSubscriptions(res.data.subscriptions || []);
+  } catch (err) {
+    console.error(err);
+    setSubscriptions([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchSubscriptions();
