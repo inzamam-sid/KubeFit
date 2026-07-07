@@ -237,10 +237,26 @@ export const getHoldSubscriptions = async (req, res) => {
 // };
 
 export const getAllSubscriptions = async (req, res) => {
-  return res.json({
-    test: "Hello from latest backend"
-  });
+  try {
+    const subscriptions = await Subscription.find()
+      .populate({
+        path: "memberId",
+        model: "Member",
+        select: "name memberId mobile isActive",
+      })
+      .populate({
+        path: "packageId",
+        model: "Package",
+        select: "name",
+      });
+
+    return res.json(subscriptions);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json(err);
+  }
 };
+
 
 export const getExpiringToday = async (req, res) => {
   try {
