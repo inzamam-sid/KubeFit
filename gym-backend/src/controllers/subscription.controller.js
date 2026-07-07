@@ -219,21 +219,27 @@ export const getHoldSubscriptions = async (req, res) => {
 };
 
 
-export const getAllSubscriptions = async (req, res) => {
-  try {
-    const subscriptions = await Subscription.find()
-      //.populate("memberId", "name memberId")
-       .populate("memberId", "name memberId isActive")
-      .populate("packageId", "name");
+// export const getAllSubscriptions = async (req, res) => {
+//   try {
+//     const subscriptions = await Subscription.find()
+//       //.populate("memberId", "name memberId")
+//        .populate("memberId", "name memberId isActive")
+//       .populate("packageId", "name");
 
-    res.status(200).json({
-      count: subscriptions.length,
-      subscriptions,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
-  }
+//     res.status(200).json({
+//       count: subscriptions.length,
+//       subscriptions,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
+export const getAllSubscriptions = async (req, res) => {
+  return res.json({
+    test: "Hello from latest backend"
+  });
 };
 
 export const getExpiringToday = async (req, res) => {
