@@ -447,6 +447,10 @@ const SubscriptionList = () => {
                       {filteredSubscriptions.map((s, index) => {
                         const isExpiringSoon = new Date(s.endDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && s.status === "active";
                         const isExpired = new Date(s.endDate) < new Date() && s.status === "active";
+
+                        console.log("Subscription:", s);
+console.log("Member:", s.memberId);
+console.log("isActive:", s.memberId?.isActive);
                         
                         return (
                           <tr 
